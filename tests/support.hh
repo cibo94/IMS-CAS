@@ -1,30 +1,36 @@
 /**
- * @file main.cpp
+ * @file support.hh
  * @author Miroslav Cibulka
- * @created 12/4/15
+ * @created 12/5/15
  * @copyright Copyright (c) 2015 XXX
  * @detail
  *
  */
 
-#include <stdexcept>
 
-#include "state.hh"
-#include "cell.hh"
-#include "cellular_automata.hh"
-#include "bmp.hh"
+#pragma once
+
+#include "../src/state.hh"
+#include "../src/cell.hh"
+#include "../src/cellular_automata.hh"
+
+#include <iostream>
+#include <ctime>
 
 
-#define VAN_NEUMANN_SIZE 100
-
-
-struct CellState : public State<unsigned>
+/**
+ * @brief this example state recalculates each tick average from
+ *        surrounding states
+ */
+struct ExampleState :
+    public State<unsigned>
   {
     typedef State<unsigned> _BaseC;
 
     virtual _BaseC &operator<<(const State &another_state)
       {
         new_value += another_state.getValue();
+        ++count;
         return *this;
       }
 
@@ -34,25 +40,31 @@ struct CellState : public State<unsigned>
     virtual void setValue(_BaseC::value_type _value)
       { value = _value; }
 
-    /** There are 0 1 2 3 states only so 3 is last one */
     virtual void renew()
-      { value = new_value > 3 ? 3 : new_value; new_value = 0; }
+      { if (count != 0) value = new_value / count; }
 
 private:
     _BaseC::value_type new_value = 0;
+    _BaseC::value_type count = 0;
     _BaseC::value_type value = 0;
   };
 
-class CellAutomata :
-    public CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, CellState>
+typedef Cell <4, ExampleState> cellT;
+
+typedef AliveCell <4, ExampleState> alive_cellT;
+
+#define VAN_NEUMANN_SIZE 100
+
+class VanNeumannCAutomata :
+    public CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, ExampleState>
   {
 public:
-    typedef CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, CellState> _BaseT;
+    typedef CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, ExampleState> _BaseT;
 
     /**
      * if chance is out of bounds then exception is called
      */
-    CellAutomata(float p) : _BaseT(), chance(p)
+    VanNeumannCAutomata(float p) : _BaseT(), chance(p)
       {
         if (p < 0 || p > 1)
           throw ::std::runtime_error(
@@ -63,7 +75,7 @@ public:
         ::std::srand((unsigned)::std::time(0));
 
         for (_BaseT::cell_type *&ptr : this->map)
-          ptr->getState().setValue((unsigned)(rand() * p) / (RAND_MAX / 256));
+          ptr->getState().setValue((unsigned)(rand() * p));
 
         for (size_t x = 0; x < height; ++x)
           for (size_t y = 0; y < width; ++y)
@@ -83,29 +95,7 @@ public:
             }
       }
 
-    ::std::vector<typename state_type::value_type> getValues()
-      {
-        ::std::vector<typename state_type::value_type> _ret;
-        for (auto &_m : map)
-          _ret.push_back(_m->getState().getValue() * (256 / 4));
-        return _ret;
-      }
-
 private:
     float chance;
   };
 
-
-int main(int /*argc*/, const char **/*argv*/)
-  {
-    CellAutomata _aut(.7f);
-    for (int i = 0; i < 10; ++i)
-      {
-        for (int j = 0; j < 5; ++j)
-          ::std::cout << _aut.getValues()[j] << ::std::endl;
-        BMP(::std::string("obr") + ::std::to_string(i) + ".bmp", 100, 100) << _aut.getValues();
-        _aut.notify();
-        ::std::cout << ::std::endl;
-      }
-    return 0;
-  }

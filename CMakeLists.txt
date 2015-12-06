@@ -8,7 +8,6 @@ else (CMAKE_BUILD_TYPE STREQUAL "Release")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O2")
 endif ()
 
-
 add_subdirectory(src)
 
 enable_testing ()
