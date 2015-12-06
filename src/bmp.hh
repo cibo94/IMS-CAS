@@ -65,9 +65,10 @@ public:
             for (int x = 0; x < _width; ++x)
               {
                 unsigned p = data[y * _width + x];
-                unsigned char col = (unsigned char)(p > 255 ? 255 : p);
                 unsigned char pixel[3];
-                pixel[0] = pixel[1] = pixel[2] = col;
+                pixel[0] = (unsigned char)((p >> 16) & 0x000000FF);
+                pixel[1] = (unsigned char)((p >> 8) & 0x000000FF);
+                pixel[2] = (unsigned char)(p & 0x000000FF);
                 this->write( (char*)pixel, 3 );
               }
             this->write( (char*)pad, padSize );

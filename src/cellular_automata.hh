@@ -69,7 +69,11 @@ template<
 
       /** Notifies all cells */
       void notify()
-        { for (auto &_m : map) if (_m != nullptr) _m->notify(); }
+        {
+          for (auto &_m : map) if (_m != nullptr) _m->notify();
+          for (auto &_m : map) if (_m != nullptr) _m->apply();
+          ++time;
+        }
 
       ~CellularAutomata2D()
         { for (auto &_m : map) delete _m; }
@@ -79,4 +83,5 @@ template<
       const int                   neighb_cnt  = static_cast<const int>(__neighbourhood_count);
       const size_t                width       = _width;
       const size_t                height      = _height;
+      size_t                      time        = 0;
     };

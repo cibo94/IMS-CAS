@@ -33,6 +33,9 @@ template<unsigned NEIGHBOURS_COUNT, typename _StateType>
       /** Notify cell about time change */
       void notify();
 
+      /** Apply changes */
+      void apply();
+
       /** @return state in which this cell is on */
       _StateType &getState();
 
@@ -115,7 +118,11 @@ template<unsigned NEIGHBOURS_COUNT, typename _StateType>
 
 template<unsigned NEIGHBOURS_COUNT, typename _StateType>
   void Cell<NEIGHBOURS_COUNT, _StateType>::notify()
-    { change(); state.renew(); }
+    { change(); }
+
+template<unsigned NEIGHBOURS_COUNT, typename _StateType>
+  void Cell<NEIGHBOURS_COUNT, _StateType>::apply()
+    { state.renew(); }
 
 template<unsigned NEIGHBOURS_COUNT, typename _StateType>
 void Cell<NEIGHBOURS_COUNT, _StateType>::setNeighbour(

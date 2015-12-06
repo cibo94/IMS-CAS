@@ -63,7 +63,7 @@ public:
         ::std::srand((unsigned)::std::time(0));
 
         for (_BaseT::cell_type *&ptr : this->map)
-          ptr->getState().setValue((unsigned)(rand() * p) / (RAND_MAX / 256));
+          ptr->getState().setValue((unsigned) (((rand() % 100) * p) / 25));
 
         for (size_t x = 0; x < height; ++x)
           for (size_t y = 0; y < width; ++y)
@@ -77,9 +77,13 @@ public:
 
               if (y < width - 1)
                 _cell->setNeighbour(2, map[x * width + y + 1]);
+              else
+                _cell->setNeighbour(2, map[x * width]);
 
               if (y > 0)
                 _cell->setNeighbour(3, map[x * width + y - 1]);
+              else
+                _cell->setNeighbour(3, map[(x + 1) * width - 1]);
             }
       }
 
@@ -87,7 +91,7 @@ public:
       {
         ::std::vector<typename state_type::value_type> _ret;
         for (auto &_m : map)
-          _ret.push_back(_m->getState().getValue() * (256 / 4));
+          _ret.push_back(_m->getState().getValue());
         return _ret;
       }
 
@@ -98,12 +102,25 @@ private:
 
 int main(int /*argc*/, const char **/*argv*/)
   {
-    CellAutomata _aut(.7f);
+    CellAutomata _aut(.5f);
     for (int i = 0; i < 10; ++i)
       {
-        for (int j = 0; j < 5; ++j)
-          ::std::cout << _aut.getValues()[j] << ::std::endl;
-        BMP(::std::string("obr") + ::std::to_string(i) + ".bmp", 100, 100) << _aut.getValues();
+        int c = 0;
+        ::std::vector<unsigned> _vals;
+        for (auto &_c : _aut.getValues())
+          {
+            ::std::cout << _c;
+            if (++c % 100 == 0)
+              ::std::cout << ::std::endl;
+            switch(_c)
+              {
+                case 0  : _vals.push_back(0x0033CC33); break;
+                case 1  : _vals.push_back(0x00FFFF00); break;
+                case 2  : _vals.push_back(0x00FF0000); break;
+                default : _vals.push_back(0x00FF33CC); break;
+              }
+          }
+        BMP(::std::string("obr") + ::std::to_string(i) + ".bmp", 100, 100) << _vals;
         _aut.notify();
         ::std::cout << ::std::endl;
       }
