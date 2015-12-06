@@ -34,20 +34,19 @@ enum class AutomataFieldType : int
  * @tparam __neighbourhood_count is number of cells on which each cell relies
  */
 template<
-    size_t _width, size_t _height, typename _StateType,
+    size_t _width, size_t _height, typename _StateType, typename _CellType,
     AutomataFieldType __neighbourhood_count = AutomataFieldType::VonNeumann>
   class CellularAutomata2D
     {
   public:
-      typedef _StateType                                                           state_type;
-      typedef AliveCell<static_cast<unsigned>(__neighbourhood_count), state_type>  alive_cell_type;
-      typedef DeadCell <static_cast<unsigned>(__neighbourhood_count), state_type>  dead_cell_type;
-      typedef Cell     <static_cast<unsigned>(__neighbourhood_count), state_type>  cell_type;
+      typedef _StateType                                                     state_type;
+      typedef _CellType                                                      cell_type;
+      typedef Cell<static_cast<unsigned>(__neighbourhood_count), state_type> base_cell_type;
 
-      CellularAutomata2D() : map(_width * _height, nullptr)
-        {
-          for (auto &_m : map) _m = new alive_cell_type();
-        }
+      template<typename _ArgStructT>
+        CellularAutomata2D(const _ArgStructT &&_params) :
+            map(_width * _height, nullptr)
+          { for (auto &_m : map) _m = new cell_type(_params); }
 
       /** @return row by index */
       ::std::vector<cell_type *> operator()(const unsigned row)

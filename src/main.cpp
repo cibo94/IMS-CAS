@@ -18,13 +18,34 @@
 #define VAN_NEUMANN_SIZE 100
 
 
-struct CellState : public State<unsigned>
+static inline bool take_chance(float chance)
+  { return ((float)::std::rand() / (float)RAND_MAX) < chance; }
+
+enum class CellStatus : unsigned
   {
-    typedef State<unsigned> _BaseC;
+    Healthy, Infected, HeavyInfected, Dead
+  };
+
+struct CellState :
+    public State<CellStatus>
+  {
+    typedef State<CellStatus> _BaseC;
+
+    CellState() { }
+
+    CellState(int T_steps, float HIV, float REPLACE, float INFECT) :
+        _t(T_steps), _hiv(HIV), _replace(REPLACE), _infect(INFECT)
+      {
+        // Cell is infected
+        if (take_chance(HIV))
+          value = CellStatus::Infected;
+        else
+          value = CellStatus::Healthy;
+      }
 
     virtual _BaseC &operator<<(const State &another_state)
       {
-        new_value += another_state.getValue();
+        surrounding_states.push_back(another_state.getValue());
         return *this;
       }
 
@@ -34,37 +55,117 @@ struct CellState : public State<unsigned>
     virtual void setValue(_BaseC::value_type _value)
       { value = _value; }
 
-    /** There are 0 1 2 3 states only so 3 is last one */
+    /** One tick */
     virtual void renew()
-      { value = new_value > 3 ? 3 : new_value; new_value = 0; }
+      {
+        static int step_counter = 0;
+        _BaseC::value_type new_value = value;
+
+        // Changes by surrounding cells
+        if (value == CellStatus::Healthy && ::std::count(
+            surrounding_states.begin(), surrounding_states.end(),
+            CellStatus::Infected) > 0)
+          { new_value = CellStatus::Infected; }
+        else if (value == CellStatus::Healthy && ::std::count(
+            surrounding_states.begin(), surrounding_states.end(),
+            CellStatus::HeavyInfected) > 1)
+          { new_value = CellStatus::Infected; }
+
+        // Stepps for CellStatus::Infected to become CellStatus::HeavyInfected
+        if (value == CellStatus::Infected && step_counter == _t)
+          {
+            new_value = CellStatus::HeavyInfected;
+            step_counter = 0;
+          }
+        if (value == CellStatus::Infected)
+          { step_counter++; }
+        else
+          { step_counter = 0; }
+
+        // Every tick HeavyInfected cell die
+        if (value == CellStatus::HeavyInfected)
+          { new_value = CellStatus::Dead; }
+
+        // Replace chances
+        if (value == CellStatus::Dead && take_chance(_replace))
+          {
+            if (take_chance(_infect))
+              new_value = CellStatus::Infected;
+            else
+              new_value = CellStatus::Healthy;
+          }
+
+        surrounding_states.clear();
+
+        value = new_value;
+      }
 
 private:
-    _BaseC::value_type new_value = 0;
-    _BaseC::value_type value = 0;
+    int     _t;
+    float   _hiv;
+    float   _replace;
+    float   _infect;
+    bool    _resurrect = false;
+
+    _BaseC::value_type value;
+    ::std::vector<_BaseC::value_type> surrounding_states;
   };
 
+class HealthyCell :
+    public Cell<8, CellState, CellStatus>
+  {
+    typedef Cell<8, CellState, CellStatus> _BaseT;
+
+public:
+    #define DEFAULT_T         4
+    #define DEFAULT_HIV       0.5f
+    #define DEFAULT_REPLACE   0.99f
+    #define DEFAULT_INFECT    0.00001f
+
+    struct params
+      {
+        params()        { }
+        int T_steps   = DEFAULT_T;
+        float HIV     = DEFAULT_HIV;
+        float REPLACE = DEFAULT_REPLACE;
+        float INFECT  = DEFAULT_INFECT;
+      };
+
+    /**
+     * @param T_steps until CellStatus::Infected becomes CellStatus::HeavyInfected
+     * @param HIV is chance to cell become CellStatus::Infected on initialization
+     * @param REPLACE is chance to resurrect CellStatus::Dead Cell
+     *                (it will become CellStatus::Healthy)
+     * @param INFECT is chance that newborn cell that is CellStatus::Healthy
+     *               becomes CellStatus::Infected right after creation
+     */
+    HealthyCell(struct params p = params())
+      { _BaseT::state = CellState(p.T_steps, p.HIV, p.REPLACE, p.INFECT); }
+
+    virtual _BaseT *die()
+      {
+        state.setValue(CellStatus::Dead);
+        return this;
+      }
+
+    /** @return Status of this cell */
+    virtual value_type getValue() const
+      { return state.getValue(); }
+  };
+
+
 class CellAutomata :
-    public CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, CellState>
+    public CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, CellState, HealthyCell>
   {
 public:
-    typedef CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, CellState> _BaseT;
+    typedef CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, CellState, HealthyCell> _BaseT;
 
     /**
      * if chance is out of bounds then exception is called
      */
-    CellAutomata(float p) : _BaseT(), chance(p)
+    CellAutomata() : _BaseT(HealthyCell::params())
       {
-        if (p < 0 || p > 1)
-          throw ::std::runtime_error(
-              std::string("{class VanNeumannCAutomata} parameter 'p' means ") +
-              "chance <=> <0, 1>!\nbut I've got '" + ::std::to_string(p) + "'");
-
-        // init randomizer
-        ::std::srand((unsigned)::std::time(0));
-
-        for (_BaseT::cell_type *&ptr : this->map)
-          ptr->getState().setValue((unsigned) (((rand() % 100) * p) / 25));
-
+        // Filling neighbour list
         for (size_t x = 0; x < height; ++x)
           for (size_t y = 0; y < width; ++y)
             {
@@ -77,13 +178,9 @@ public:
 
               if (y < width - 1)
                 _cell->setNeighbour(2, map[x * width + y + 1]);
-              else
-                _cell->setNeighbour(2, map[x * width]);
 
               if (y > 0)
                 _cell->setNeighbour(3, map[x * width + y - 1]);
-              else
-                _cell->setNeighbour(3, map[(x + 1) * width - 1]);
             }
       }
 
@@ -94,30 +191,28 @@ public:
           _ret.push_back(_m->getState().getValue());
         return _ret;
       }
-
-private:
-    float chance;
   };
 
 
 int main(int /*argc*/, const char **/*argv*/)
   {
-    CellAutomata _aut(.5f);
+    ::std::srand((unsigned)::std::time(0));
+    CellAutomata _aut;
     for (int i = 0; i < 10; ++i)
       {
         int c = 0;
         ::std::vector<unsigned> _vals;
-        for (auto &_c : _aut.getValues())
+        for (CellStatus &_c : _aut.getValues())
           {
-            ::std::cout << _c;
+            ::std::cout << (unsigned) _c << " ";
             if (++c % 100 == 0)
               ::std::cout << ::std::endl;
             switch(_c)
               {
-                case 0  : _vals.push_back(0x0033CC33); break;
-                case 1  : _vals.push_back(0x00FFFF00); break;
-                case 2  : _vals.push_back(0x00FF0000); break;
-                default : _vals.push_back(0x00FF33CC); break;
+                case CellStatus::Healthy:       _vals.push_back(0x0033CC33); break;
+                case CellStatus::Infected:      _vals.push_back(0x00FFFF00); break;
+                case CellStatus::HeavyInfected: _vals.push_back(0x00FF0000); break;
+                case CellStatus::Dead:          _vals.push_back(0x00FF33CC); break;
               }
           }
         BMP(::std::string("obr") + ::std::to_string(i) + ".bmp", 100, 100) << _vals;

@@ -58,20 +58,24 @@ public:
 
     ::std::ofstream &operator<<(::std::vector<unsigned> data)
       {
-        unsigned char pad[3] = {0,0,0};
+        unsigned char pad[3] = {0, 0, 0};
 
-        for (int y = 0; y < _height; ++y)
+        for (int y = 0;
+             y < _height;
+             ++y)
           {
-            for (int x = 0; x < _width; ++x)
+            for (int x = 0;
+                 x < _width;
+                 ++x)
               {
                 unsigned p = data[y * _width + x];
                 unsigned char pixel[3];
-                pixel[0] = (unsigned char)((p >> 16) & 0x000000FF);
-                pixel[1] = (unsigned char)((p >> 8) & 0x000000FF);
-                pixel[2] = (unsigned char)(p & 0x000000FF);
-                this->write( (char*)pixel, 3 );
+                pixel[0] = (unsigned char) ((p >> 16) & 0x000000FF);
+                pixel[1] = (unsigned char) ((p >> 8) & 0x000000FF);
+                pixel[2] = (unsigned char) (p & 0x000000FF);
+                this->write((char *) pixel, 3);
               }
-            this->write( (char*)pad, padSize );
+            this->write((char *) pad, padSize);
           }
         return *this;
       }

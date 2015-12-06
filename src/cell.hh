@@ -16,10 +16,13 @@
 #include "state.hh"
 
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
+template<
+    unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType = bool>
   class Cell
     {
   public:
+      typedef _ValueType value_type;
+
       typedef _StateType state_type;
 
       Cell();
@@ -46,43 +49,26 @@ template<unsigned NEIGHBOURS_COUNT, typename _StateType>
        * @brief converts this cell to dead cell
        * @details Returns newly allocated
        */
-      virtual Cell *die();
+      virtual Cell *die() = 0;
 
       /** @return true if cell is AliveCell or DeadCell */
-      virtual bool isAlive() const = 0;
+      virtual value_type getValue() const = 0;
 
       void setNeighbour(unsigned x, Cell *ptr);
 
       virtual ~Cell();
 
   protected:
-      Cell *neighbours[NEIGHBOURS_COUNT] = {nullptr};
+      Cell *neighbours[NEIGHBOURS_COUNT] = { nullptr };
 
       _StateType state;
     };
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  class AliveCell :
-      public Cell<NEIGHBOURS_COUNT, _StateType>
-    {
-      typedef Cell<NEIGHBOURS_COUNT, _StateType> __BaseT;
-
-  public:
-
-      /** Healty cell is alive */
-      virtual bool isAlive() const
-        { return true; }
-
-      virtual ~AliveCell()
-        { }
-    };
-
-
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType = bool>
   class DeadCell :
-      public Cell<NEIGHBOURS_COUNT, _StateType>
+      public Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>
     {
-      typedef Cell<NEIGHBOURS_COUNT, _StateType> __BaseT;
+      typedef Cell<NEIGHBOURS_COUNT, _StateType, _ValueType> __BaseT;
 
   public:
       /**
@@ -93,10 +79,35 @@ template<unsigned NEIGHBOURS_COUNT, typename _StateType>
         { return this; }
 
       /** Dead cell is not alive */
-      virtual bool isAlive() const
-        { return false; }
+      virtual _ValueType getValue() const
+        { return _ValueType(); }
 
       virtual ~DeadCell()
+        { }
+    };
+
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType = bool>
+  class AliveCell :
+      public Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>
+    {
+      typedef Cell<NEIGHBOURS_COUNT, _StateType, _ValueType> __BaseT;
+
+  public:
+
+      /** Healty cell is alive */
+      virtual _ValueType getValue() const
+        { return true; }
+
+      virtual __BaseT *die()
+        {
+          // Create new dead cell from this one and deallocate it
+          __BaseT *dead = new DeadCell<NEIGHBOURS_COUNT, _StateType, _ValueType>;
+          dead->copy(this);
+          delete this; /* Cell now die in horrible pain */
+          return dead;
+        }
+
+      virtual ~AliveCell()
         { }
     };
 
@@ -104,60 +115,50 @@ template<unsigned NEIGHBOURS_COUNT, typename _StateType>
 /*          IMPLEMENTATIONS            */
 /*  ---------------------------------  */
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  Cell<NEIGHBOURS_COUNT, _StateType>::Cell()
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::Cell()
     { }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  void Cell<NEIGHBOURS_COUNT, _StateType>::change()
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::change()
     {
-      for (Cell<NEIGHBOURS_COUNT, _StateType> **ite = neighbours;
+      for (Cell<NEIGHBOURS_COUNT, _StateType, _ValueType> **ite = neighbours;
            ite != neighbours + NEIGHBOURS_COUNT; ++ite)
         { if (*ite != nullptr) state << (*ite)->getState(); }
     }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  void Cell<NEIGHBOURS_COUNT, _StateType>::notify()
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::notify()
     { change(); }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  void Cell<NEIGHBOURS_COUNT, _StateType>::apply()
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::apply()
     { state.renew(); }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-void Cell<NEIGHBOURS_COUNT, _StateType>::setNeighbour(
-    unsigned x, Cell<NEIGHBOURS_COUNT, _StateType> *ptr)
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::setNeighbour(
+    unsigned x, Cell<NEIGHBOURS_COUNT, _StateType, _ValueType> *ptr)
   { if (x < NEIGHBOURS_COUNT) neighbours[x] = ptr; }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  _StateType &Cell<NEIGHBOURS_COUNT, _StateType>::getState()
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  _StateType &Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::getState()
     { return state; }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  Cell<NEIGHBOURS_COUNT, _StateType> *Cell<NEIGHBOURS_COUNT, _StateType>::die()
-    {
-      // Create new dead cell from this one and deallocate it
-      Cell *dead = new DeadCell<NEIGHBOURS_COUNT, _StateType>;
-      dead->copy(this);
-      delete this; /* Cell now die in horrible pain */
-      return dead;
-    }
-
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  void Cell<NEIGHBOURS_COUNT, _StateType>::setState(_StateType _s)
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::setState(_StateType _s)
     { state = _s; }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  Cell<NEIGHBOURS_COUNT, _StateType>::~Cell()
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::~Cell()
     { }
 
-template<unsigned NEIGHBOURS_COUNT, typename _StateType>
-  void Cell<NEIGHBOURS_COUNT, _StateType>::copy(
-      Cell<NEIGHBOURS_COUNT, _StateType> *cell)
+template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
+  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::copy(
+      Cell<NEIGHBOURS_COUNT, _StateType, _ValueType> *cell)
     {
       this->state = cell->state;
       int i = 0;
-      for (Cell<NEIGHBOURS_COUNT, _StateType> **beg = cell->neighbours;
+      for (Cell<NEIGHBOURS_COUNT, _StateType, _ValueType> **beg = cell->neighbours;
            beg != cell->neighbours + NEIGHBOURS_COUNT; ++beg)
         this->neighbours[++i] = *beg;
     }
