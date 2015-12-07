@@ -3,7 +3,8 @@ ADD_EXECUTABLE(unit_tests
   test_cell.cpp
   test_state.cpp
   support.hh
-  test_automata.cpp)
+  test_automata.cpp
+  plot.cpp)
 TARGET_LINK_LIBRARIES(unit_tests)
 ADD_TEST(TEST_UNIT ${VALGRIND} ./unit_tests)
 

@@ -24,9 +24,9 @@ BOOST_AUTO_TEST_SUITE(cell_tests)
 
           for (auto &_cell : _cell_vector)
             {
-              BOOST_CHECK(_cell->isAlive());
+              BOOST_CHECK(_cell->getValue());
               _cell = _cell->die();
-              BOOST_CHECK(! _cell->isAlive());
+              BOOST_CHECK(! _cell->getValue());
               delete _cell;
             }
         }

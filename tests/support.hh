@@ -53,13 +53,13 @@ typedef Cell <4, ExampleState> cellT;
 
 typedef AliveCell <4, ExampleState> alive_cellT;
 
-#define VAN_NEUMANN_SIZE 100
+#define MAP_SIZE 100
 
 class VanNeumannCAutomata :
-    public CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, ExampleState>
+    public CellularAutomata2D<MAP_SIZE, MAP_SIZE, ExampleState, alive_cellT>
   {
 public:
-    typedef CellularAutomata2D<VAN_NEUMANN_SIZE, VAN_NEUMANN_SIZE, ExampleState> _BaseT;
+    typedef CellularAutomata2D<MAP_SIZE, MAP_SIZE, ExampleState, alive_cellT> _BaseT;
 
     /**
      * if chance is out of bounds then exception is called

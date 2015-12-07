@@ -70,9 +70,9 @@ public:
               {
                 unsigned p = data[y * _width + x];
                 unsigned char pixel[3];
-                pixel[0] = (unsigned char) ((p >> 16) & 0x000000FF);
+                pixel[0] = (unsigned char) (p & 0x000000FF);
                 pixel[1] = (unsigned char) ((p >> 8) & 0x000000FF);
-                pixel[2] = (unsigned char) (p & 0x000000FF);
+                pixel[2] = (unsigned char) ((p >> 16) & 0x000000FF);
                 this->write((char *) pixel, 3);
               }
             this->write((char *) pad, padSize);

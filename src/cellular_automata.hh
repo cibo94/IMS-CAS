@@ -43,6 +43,10 @@ template<
       typedef _CellType                                                      cell_type;
       typedef Cell<static_cast<unsigned>(__neighbourhood_count), state_type> base_cell_type;
 
+      CellularAutomata2D() :
+          map(_width * _height, nullptr)
+        { for (auto &_m : map) _m = new cell_type; }
+
       template<typename _ArgStructT>
         CellularAutomata2D(const _ArgStructT &&_params) :
             map(_width * _height, nullptr)

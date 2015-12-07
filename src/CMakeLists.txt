@@ -6,6 +6,6 @@ set(CAS_SOURCE
 	bmp.hh
 	)
 
-add_executable(cas ${CAS_SOURCE} bmp.hh)
+add_executable(cas ${CAS_SOURCE} bmp.hh plot.hh)
 
 target_link_libraries(cas)
