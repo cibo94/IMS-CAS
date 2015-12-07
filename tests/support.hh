@@ -18,6 +18,13 @@
 #include <ctime>
 #include <stdexcept>
 
+#ifndef MAP_SIZE
+# define MAP_SIZE 1000
+#endif
+
+#ifndef LOOP_COUNT
+# define LOOP_COUNT 200
+#endif
 
 /**
  * @brief this example state recalculates each tick average from
@@ -53,8 +60,6 @@ private:
 typedef Cell <4, ExampleState> cellT;
 
 typedef AliveCell <4, ExampleState> alive_cellT;
-
-#define MAP_SIZE 100
 
 class VanNeumannCAutomata :
     public CellularAutomata2D<MAP_SIZE, MAP_SIZE, ExampleState, alive_cellT>

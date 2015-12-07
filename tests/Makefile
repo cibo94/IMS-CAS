@@ -7,12 +7,12 @@ OBJECTS     = ${BUILD_DIR}/test_main.o ${BUILD_DIR}/plot.o \
 			  ${BUILD_DIR}/test_cell.o ${BUILD_DIR}/test_state.o
 HEADERS     = support.hh
 TARGETS     = ${PROJECT_DIR}/test ${PROJECT_DIR}/test_bmp
-DEFINES		=
-LIBS		=
+DEFINES     =
+LIBS        =
 
 # MACROS
-LINK.cxx    = ${CXX} ${LDFLAGS} ${DEFINES} -o
-BUILD.cxx   = ${CXX} ${CXXFLAGS} -c -o
+LINK.cxx    = ${CXX} ${LDFLAGS} -o
+BUILD.cxx   = ${CXX} ${CXXFLAGS} ${DEFINES} -c -o
 BMP.check   = ./check_bmp.sh
 
 all: ${TARGETS}

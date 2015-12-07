@@ -32,7 +32,7 @@ struct GnuPlot
         table.reserve(y.size());
         int c = 0;
         for (auto &row : y)
-          table.push_back(::std::tuple<header_T, data_T>(row, x[++c]));
+          table.push_back(::std::tuple<header_T, data_T>(row, x[c++]));
       }
 
     ~GnuPlot()

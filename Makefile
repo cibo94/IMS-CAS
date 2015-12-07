@@ -1,16 +1,22 @@
 PROJECT_NAME        = cas
 MAP_SIZE            = 100
+LOOP_COUNT          = 200
+DEFAULT_T 			= 4
+DEFAULT_INFECTION   = 0.00001
 CXX                 = g++
-CXXFLAGS            = -std=c++14 -O3
-EXECUTABLE          = ${PROJECT_NAME}${MAP_SIZE}
+CXXFLAGS            = -std=c++14 -O3 -g
+EXECUTABLE          = ${PROJECT_NAME}-${MAP_SIZE}-${LOOP_COUNT}-${DEFAULT_INFECTION}-${DEFAULT_T}
 TEST_EXE            = ${PROJECT_NAME}_test
 
-MAKE.cas  = make -C src/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"    \
-			TARGET_NAME="cas${MAP_SIZE}" PROJECT_DIR=".."       \
-			BUILD_DIR="../build/cas${MAP_SIZE}" DEFINES="-DMAP_SIZE=${MAP_SIZE}"
 
-MAKE.test = make -C tests/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"  \
-			PROJECT_DIR=".."  BUILD_DIR="../build/cas${MAP_SIZE}"
+MAKE.cas  = make -j4 -C src/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"     \
+			PROJECT_NAME="${EXECUTABLE}.run" PROJECT_DIR=".."        \
+			BUILD_DIR="../build/${EXECUTABLE}"                       \
+			DEFINES="-DLOOP_COUNT=${LOOP_COUNT} -DMAP_SIZE=${MAP_SIZE}"
+
+MAKE.test = make -j4 -C tests/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"   \
+			PROJECT_DIR=".."  BUILD_DIR="../build/${EXECUTABLE}"     \
+			DEFINES="-DLOOP_COUNT=${LOOP_COUNT} -DMAP_SIZE=${MAP_SIZE}"
 
 all: ${EXECUTABLE} ${TEST_EXE}
 
@@ -18,7 +24,7 @@ build:
 	[ -d build ] || mkdir build
 
 ${EXECUTABLE}: build
-	[ -d build/cas${MAP_SIZE} ] || mkdir build/${PROJECT_NAME}${MAP_SIZE}
+	[ -d build/${EXECUTABLE} ] || mkdir build/${EXECUTABLE}
 	${MAKE.cas}
 
 ${TEST_EXE}: build
@@ -36,3 +42,5 @@ clean:
 	
 run:
 	${MAKE.cas} run
+
+

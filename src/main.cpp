@@ -17,11 +17,23 @@
 
 
 #ifndef MAP_SIZE
-# define MAP_SIZE 1000
+# define MAP_SIZE          1000
 #endif
 
 #ifndef LOOP_COUNT
-# define LOOP_COUNT 200
+# define LOOP_COUNT        200
+#endif
+
+#ifndef DEFAULT_T
+# define DEFAULT_T         4
+#endif
+
+#define DEFAULT_HIV        0.05
+
+#define DEFAULT_REPLACE    0.99
+
+#ifndef DEFAULT_INFECTION
+# define DEFAULT_INFECTION 0.00001
 #endif
 
 
@@ -54,6 +66,7 @@ struct CellState :
 
     virtual _BaseC &operator<<(const State &another_state)
       {
+        // We are only interested in surrounding states, so collect them for later
         surrounding_states.push_back(another_state.getValue());
         return *this;
       }
@@ -114,37 +127,30 @@ struct CellState :
       }
 
 private:
-    int     _t;
-    double  _hiv;
-    double  _replace;
-    double  _infect;
-    bool    newly_created = false;
-
-    int     step_counter = 0;
-
-    _BaseC::value_type value;
+    int                               _t            = DEFAULT_T;
+    double                            _hiv          = DEFAULT_HIV;
+    double                            _replace      = DEFAULT_REPLACE;
+    double                            _infect       = DEFAULT_INFECTION;
+    bool                              newly_created = false;
+    int                               step_counter  = 0;
+    _BaseC::value_type                value;
     ::std::vector<_BaseC::value_type> surrounding_states;
   };
 
 
-class HealthyCell :
+class HIVCell :
     public Cell<8, CellState, CellStatus>
   {
     typedef Cell<8, CellState, CellStatus> _BaseT;
 
 public:
-    #define DEFAULT_T         4
-    #define DEFAULT_HIV       0.05
-    #define DEFAULT_REPLACE   0.99
-    #define DEFAULT_INFECT    0.00001
-
     struct params
       {
         params()        { }
         int T_steps   = DEFAULT_T;
         double HIV    = DEFAULT_HIV;
         double REPLACE= DEFAULT_REPLACE;
-        double INFECT = DEFAULT_INFECT;
+        double INFECT = DEFAULT_INFECTION;
       };
 
     /**
@@ -155,8 +161,8 @@ public:
      * @param INFECT is chance that newborn cell that is CellStatus::Healthy
      *               becomes CellStatus::Infected right after creation
      */
-    HealthyCell(struct params p = params())
-      { _BaseT::state = CellState(p.T_steps, p.HIV, p.REPLACE, p.INFECT); }
+    HIVCell(struct params p = params())
+      { state = CellState(p.T_steps, p.HIV, p.REPLACE, p.INFECT); }
 
     virtual _BaseT *die()
       {
@@ -171,15 +177,15 @@ public:
 
 
 class CellAutomata :
-    public CellularAutomata2D<MAP_SIZE, MAP_SIZE, CellState, HealthyCell>
+    public CellularAutomata2D<MAP_SIZE, MAP_SIZE, CellState, HIVCell>
   {
 public:
-    typedef CellularAutomata2D<MAP_SIZE, MAP_SIZE, CellState, HealthyCell> _BaseT;
+    typedef CellularAutomata2D<MAP_SIZE, MAP_SIZE, CellState, HIVCell> _BaseT;
 
     /**
      * if chance is out of bounds then exception is called
      */
-    CellAutomata() : _BaseT(HealthyCell::params())
+    CellAutomata() : _BaseT(HIVCell::params())
       {
         ::std::srand((unsigned)::std::time(0));
         // Filling neighbour list
@@ -217,7 +223,7 @@ public:
       {
         ::std::vector<typename state_type::value_type> _ret;
         for (auto &_m : map)
-          _ret.push_back(_m->getState().getValue());
+          _ret.push_back(_m->getValue());
         return _ret;
       }
   };
@@ -243,7 +249,7 @@ struct Statistics
         header.push_back(++disc_time);
       }
 
-    ~Statistics()
+    void flush()
       {
         plot_type(filename+"_healty.gp").write_data(header, _statuses[0]);
         plot_type(filename+"_infected.gp").write_data(header, _statuses[1]);
@@ -283,5 +289,6 @@ int main(int /*argc*/, const char **/*argv*/)
         _aut.notify();
         _stats.notify();
       }
+    _stats.flush();
     return 0;
   }

@@ -39,9 +39,8 @@ template<
   class CellularAutomata2D
     {
   public:
-      typedef _StateType                                                     state_type;
-      typedef _CellType                                                      cell_type;
-      typedef Cell<static_cast<unsigned>(__neighbourhood_count), state_type> base_cell_type;
+      typedef _StateType  state_type;
+      typedef _CellType   cell_type;
 
       CellularAutomata2D() :
           map(_width * _height, nullptr)
@@ -83,7 +82,7 @@ template<
 
   protected:
       ::std::vector<cell_type *>  map;
-      const int                   neighb_cnt  = static_cast<const int>(__neighbourhood_count);
+      const int                   neighb_cnt  = (const int)__neighbourhood_count;
       const size_t                width       = _width;
       const size_t                height      = _height;
       size_t                      time        = 0;
