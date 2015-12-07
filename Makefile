@@ -9,14 +9,17 @@ EXECUTABLE          = ${PROJECT_NAME}-${MAP_SIZE}-${LOOP_COUNT}-${DEFAULT_INFECT
 TEST_EXE            = ${PROJECT_NAME}_test
 
 
-MAKE.cas  = make -j4 -C src/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"     \
-			PROJECT_NAME="${EXECUTABLE}.run" PROJECT_DIR=".."        \
-			BUILD_DIR="../build/${EXECUTABLE}"                       \
-			DEFINES="-DLOOP_COUNT=${LOOP_COUNT} -DMAP_SIZE=${MAP_SIZE}"
+MAKE.cas  = make -j4 -C src/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"       \
+			PROJECT_NAME="${EXECUTABLE}.run" PROJECT_DIR=".."          \
+			BUILD_DIR="../build/${EXECUTABLE}"                         \
+			DEFINES="-DLOOP_COUNT=${LOOP_COUNT} -DMAP_SIZE=${MAP_SIZE} \
+					 -DDEFAULT_T=${DEFAULT_T} -DDEFAULT_INFECTION=${DEFAULT_INFECTION}"
 
-MAKE.test = make -j4 -C tests/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"   \
-			PROJECT_DIR=".."  BUILD_DIR="../build/${EXECUTABLE}"     \
-			DEFINES="-DLOOP_COUNT=${LOOP_COUNT} -DMAP_SIZE=${MAP_SIZE}"
+MAKE.test = make -j4 -C tests/ CXX="${CXX}" CXXFLAGS="${CXXFLAGS}"     \
+			PROJECT_DIR=".."  BUILD_DIR="../build/${EXECUTABLE}"       \
+			DEFINES="-DLOOP_COUNT=${LOOP_COUNT} -DMAP_SIZE=${MAP_SIZE} \
+					 -DDEFAULT_T=${DEFAULT_T} -DDEFAULT_INFECTION=${DEFAULT_INFECTION}"
+
 
 all: ${EXECUTABLE} ${TEST_EXE}
 
