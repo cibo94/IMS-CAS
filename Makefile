@@ -42,7 +42,7 @@ zip:
 		src/main.cpp src/Makefile src/plot.hh src/state.hh         \
 		tests/check_bmp.sh tests/test_state.cpp tests/main.cpp     \
 		tests/Makefile tests/support.hh tests/test_automata.cpp    \
-		tests/test_bmp.cpp tests/test_cell.cpp
+		tests/test_bmp.cpp tests/test_cell.cpp doc.pdf
 
 tar:
 	tar czvf 04_xcibul10_xslouk02.tar.gz Makefile src/bmp.hh       \
@@ -50,9 +50,8 @@ tar:
 		src/main.cpp src/Makefile src/plot.hh src/state.hh         \
 		tests/check_bmp.sh tests/test_state.cpp tests/main.cpp     \
 		tests/Makefile tests/support.hh tests/test_automata.cpp    \
-		tests/test_bmp.cpp tests/test_cell.cpp
+		tests/test_bmp.cpp tests/test_cell.cpp doc.pdf
 		
-
 test:
 	${MAKE.test} run
 
