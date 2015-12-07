@@ -1,7 +1,7 @@
 PROJECT_NAME        = cas
 MAP_SIZE            = 100
 LOOP_COUNT          = 200
-DEFAULT_T 			= 4
+DEFAULT_T           = 4
 DEFAULT_INFECTION   = 0.00001
 CXX                 = g++
 CXXFLAGS            = -std=c++14 -O3 -g
