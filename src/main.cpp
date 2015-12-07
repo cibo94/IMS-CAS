@@ -16,16 +16,24 @@
 #include "plot.hh"
 
 
-#define MAP_SIZE 1000
+#ifndef MAP_SIZE
+# define MAP_SIZE 1000
+#endif
+
+#ifndef LOOP_COUNT
+# define LOOP_COUNT 200
+#endif
 
 
 static inline bool take_chance(double chance)
   { return ((double)::std::rand() / (double)RAND_MAX) < chance; }
 
+
 enum class CellStatus : unsigned
   {
     Healthy, Infected, HeavyInfected, Dead
   };
+
 
 struct CellState :
     public State<CellStatus>
@@ -107,9 +115,9 @@ struct CellState :
 
 private:
     int     _t;
-    double   _hiv;
-    double   _replace;
-    double   _infect;
+    double  _hiv;
+    double  _replace;
+    double  _infect;
     bool    newly_created = false;
 
     int     step_counter = 0;
@@ -117,6 +125,7 @@ private:
     _BaseC::value_type value;
     ::std::vector<_BaseC::value_type> surrounding_states;
   };
+
 
 class HealthyCell :
     public Cell<8, CellState, CellStatus>
@@ -255,7 +264,7 @@ int main(int /*argc*/, const char **/*argv*/)
   {
     CellAutomata _aut;
     Statistics _stats ("plot");
-    for (int i = 0; i < 200; ++i)
+    for (int i = 0; i < LOOP_COUNT; ++i)
       {
         ::std::vector<unsigned> _vals;
         for (CellStatus &_c : _aut.getValues())
