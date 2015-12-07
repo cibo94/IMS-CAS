@@ -4,7 +4,7 @@ LOOP_COUNT          = 200
 DEFAULT_T           = 4
 DEFAULT_INFECTION   = 0.00001
 CXX                 = g++
-CXXFLAGS            = -std=c++14 -O3 -g
+CXXFLAGS            = -std=c++14 -O3
 EXECUTABLE          = ${PROJECT_NAME}-${MAP_SIZE}-${LOOP_COUNT}-${DEFAULT_INFECTION}-${DEFAULT_T}
 TEST_EXE            = ${PROJECT_NAME}_test
 
@@ -34,7 +34,24 @@ ${TEST_EXE}: build
 	[ -d build/test ] || mkdir build/test
 	${MAKE.test}
 
-.PHONY: test clean run
+.PHONY: test clean run zip tar
+
+zip:
+	zip -r 04_xcibul10_xslouk02.zip Makefile src/bmp.hh            \
+		tests/test_plot.cpp src/cell.hh src/cellular_automata.hh   \
+		src/main.cpp src/Makefile src/plot.hh src/state.hh         \
+		tests/check_bmp.sh tests/test_state.cpp tests/main.cpp     \
+		tests/Makefile tests/support.hh tests/test_automata.cpp    \
+		tests/test_bmp.cpp tests/test_cell.cpp
+
+tar:
+	tar czvf 04_xcibul10_xslouk02.tar.gz Makefile src/bmp.hh       \
+		tests/test_plot.cpp src/cell.hh src/cellular_automata.hh   \
+		src/main.cpp src/Makefile src/plot.hh src/state.hh         \
+		tests/check_bmp.sh tests/test_state.cpp tests/main.cpp     \
+		tests/Makefile tests/support.hh tests/test_automata.cpp    \
+		tests/test_bmp.cpp tests/test_cell.cpp
+		
 
 test:
 	${MAKE.test} run
