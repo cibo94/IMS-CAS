@@ -30,9 +30,6 @@ template<
       /** Copies cell _c into this cell */
       void copy(Cell *_c);
 
-      /** Notifies surroundings about his new state */
-      void change();
-
       /** Notify cell about time change */
       void notify();
 
@@ -120,16 +117,12 @@ template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
     { }
 
 template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
-  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::change()
+  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::notify()
     {
       for (Cell<NEIGHBOURS_COUNT, _StateType, _ValueType> **ite = neighbours;
            ite != neighbours + NEIGHBOURS_COUNT; ++ite)
         { if (*ite != nullptr) state << (*ite)->getState(); }
     }
-
-template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
-  void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::notify()
-    { change(); }
 
 template<unsigned NEIGHBOURS_COUNT, typename _StateType, typename _ValueType>
   void Cell<NEIGHBOURS_COUNT, _StateType, _ValueType>::apply()
